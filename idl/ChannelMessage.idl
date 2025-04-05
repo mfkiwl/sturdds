@@ -1,0 +1,28 @@
+#include "Header.idl"
+
+struct ChannelMessage {
+  Header stamp;
+  octet ChannelID;
+  octet SatelliteID;
+  octet ConstellationID;
+  octet SignalID;
+  octet ChannelStatus;
+  unsigned short Week;
+  double ToW;
+  double Doppler;
+  double DopplerVariance;
+  double Pseudorange;
+  double PseudorangeVariance;
+  double CarrierPhase;
+  double CarrierPhaseVariance;
+  double CNo;
+  double Azimuth;
+  double Elevation;
+  double IE;
+  double IP;
+  double IL;
+  double QE;
+  double QP;
+  double QL;
+  double TapSpace;
+};

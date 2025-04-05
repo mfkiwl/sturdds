@@ -1,0 +1,16 @@
+.DS_Store/
+.DS_Store
+.vscode/
+build/
+log/
+install/
+*.yaml
+*.yml
+.venv/
+.cache/
+
+_OLD
+__OLD
+OLD
+OLD_DELETE
+DELETE

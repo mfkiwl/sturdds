@@ -1,0 +1,29 @@
+#include "Header.idl"
+
+struct NavMessage {
+  Header stamp;
+  unsigned short Week;
+  double ToW;
+  double Lat;
+  double Lon;
+  double H;
+  double Vn;
+  double Ve;
+  double Vd;
+  double Roll;
+  double Pitch;
+  double Yaw;
+  double Bias;
+  double Drift;
+  double P0;
+  double P1;
+  double P2; 
+  double P3; 
+  double P4;
+  double P5;
+  double P6;
+  double P7;
+  double P8;
+  double P9;
+  double P10;
+};

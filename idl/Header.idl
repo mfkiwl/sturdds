@@ -1,0 +1,6 @@
+struct Header {
+  boolean valid;
+  unsigned long long index;
+  unsigned long long sec;
+  unsigned long long nanosec;
+};
