@@ -1,3 +1,3 @@
 cd idl
-fastddsgen -replace -d ../dcps/sturdds  *.idl
+fastddsgen -python -replace -d ../rtps/sturdds  *.idl
 cd ..

@@ -1,3 +1,6 @@
+#ifndef STURDDS_INTERFACE_HPP
+#define STURDDS_INTERFACE_HPP
+
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
@@ -47,17 +50,20 @@ class Interface {
    */
   template <typename DataType>
   std::unique_ptr<Publisher<DataType>> CreatePublisher(
-      const std::string& topic_name,
+      const std::string topic_name,
+      eprosima::fastdds::dds::TopicDataType* topic_type,
       eprosima::fastdds::dds::PublisherQos qos = eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT) {
-    return std::make_unique<Publisher<DataType>>(topic_name, participant_, qos);
+    return std::make_unique<Publisher<DataType>>(topic_name, topic_type, participant_, qos);
   }
 
   template <typename DataType>
   std::unique_ptr<Subscriber<DataType>> CreateSubscriber(
-      const std::string& topic_name,
+      const std::string topic_name,
+      eprosima::fastdds::dds::TopicDataType* topic_type,
       std::function<void(const DataType&)> callback_func,
       eprosima::fastdds::dds::SubscriberQos qos = eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT) {
-    return std::make_unique<Subscriber<DataType>>(topic_name, callback_func, participant_, qos);
+    return std::make_unique<Subscriber<DataType>>(
+        topic_name, topic_type, callback_func, participant_, qos);
   }
 
  private:
@@ -67,3 +73,5 @@ class Interface {
 };
 
 }  // namespace sturdds
+
+#endif

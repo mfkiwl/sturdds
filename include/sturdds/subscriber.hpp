@@ -1,3 +1,6 @@
+#ifndef STURDDS_SUBSCRIBER_HPP
+#define STURDDS_SUBSCRIBER_HPP
+
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/subscriber/DataReader.hpp>
 #include <fastdds/dds/subscriber/DataReaderListener.hpp>
@@ -18,35 +21,34 @@ class Subscriber : public eprosima::fastdds::dds::DataReaderListener {
    */
   Subscriber(
       const std::string& topic_name,
+      eprosima::fastdds::dds::TopicDataType* topic_type,
       std::function<void(const DataType&)> callback_func,
       eprosima::fastdds::dds::DomainParticipant* participant,
       eprosima::fastdds::dds::SubscriberQos qos = eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT)
-      : topic_name_(topic_name),
-        participant_(participant),
-        subscriber_(nullptr),
-        reader_(nullptr),
-        type_support_(nullptr),
-        topic_(nullptr),
-        num_matches_(0),
-        is_matched_(false) {
+      : topic_name_{topic_name},
+        participant_{participant},
+        subscriber_{nullptr},
+        reader_{nullptr},
+        type_{topic_type},
+        topic_{nullptr},
+        num_matches_{0},
+        is_matched_{false} {
     // save participant
     if (participant_ == nullptr) {
       throw std::runtime_error("DomainParticipant cannot be null.");
     }
 
     // define custom type
-    type_support_ = new DataType::TypeSupport();
-    if (!type_support_->register_type(participant_)) {
-      delete type_support_;
-      throw std::runtime_error(
-          "Error registering type: " + std::string(type_support_->get_type_name()));
+    if (type_.register_type(participant_)) {
+      throw std::runtime_error("Error registering type: " + std::string(type_.get_type_name()));
     }
+    // auto ret = type_.register_type(participant_);
+    // std::cout << "register_type returned " << ret << std::endl;
 
     // create topic
     topic_ = participant_->create_topic(
-        topic_name_, type_support_->get_type_name(), eprosima::fastdds::dds::TopicQos());
+        topic_name_, type_.get_type_name(), eprosima::fastdds::dds::TopicQos());
     if (topic_ == nullptr) {
-      delete type_support_;
       throw std::runtime_error("Error creating DDS Topic: " + topic_name_);
     }
 
@@ -54,7 +56,6 @@ class Subscriber : public eprosima::fastdds::dds::DataReaderListener {
     subscriber_ = participant_->create_subscriber(qos, nullptr);
     if (subscriber_ == nullptr) {
       participant_->delete_topic(topic_);
-      delete type_support_;
       throw std::runtime_error("Error creating DDS Subscriber.");
     }
 
@@ -66,7 +67,6 @@ class Subscriber : public eprosima::fastdds::dds::DataReaderListener {
     if (reader_ == nullptr) {
       participant_->delete_topic(topic_);
       participant_->delete_subscriber(subscriber_);
-      delete type_support_;
       throw std::runtime_error("Error creating DDS DataReader for topic: " + topic_name_);
     }
 
@@ -87,9 +87,6 @@ class Subscriber : public eprosima::fastdds::dds::DataReaderListener {
     }
     if (topic_ != nullptr) {
       participant_->delete_topic(topic_);
-    }
-    if (type_support_ != nullptr) {
-      delete type_support_;
     }
   };
 
@@ -125,7 +122,7 @@ class Subscriber : public eprosima::fastdds::dds::DataReaderListener {
   eprosima::fastdds::dds::DomainParticipant* participant_;
   eprosima::fastdds::dds::Subscriber* subscriber_;
   eprosima::fastdds::dds::DataReader* reader_;
-  typename DataType::typeSupport* type_support_;
+  eprosima::fastdds::dds::TypeSupport type_;
   eprosima::fastdds::dds::Topic* topic_;
   int num_matches_;
   bool is_matched_;
@@ -204,3 +201,5 @@ class Subscriber : public eprosima::fastdds::dds::DataReaderListener {
 };
 
 }  // namespace sturdds
+
+#endif

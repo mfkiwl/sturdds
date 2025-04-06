@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15...3.27)
+cmake_minimum_required(VERSION 3.18...3.27)
 project(sturdds)
 
 string(ASCII 27 Esc)
@@ -29,7 +29,7 @@ message(STATUS "${BoldCyan}${PROJECT_NAME} version ${PROJECT_VERSION}${Reset}")
 # # --- Compiler Flags ---
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wunused -pedantic")
+# set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wunused -pedantic -W")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -W")
 # set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Ofast -ffast-math -fomit-frame-pointer -fstrict-aliasing -flto -DNDEBUG -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native")
@@ -39,17 +39,17 @@ find_package(fastdds REQUIRED)
 find_package(fastcdr REQUIRED)
 
 # --- Add Library Soruce Files ---
-file(GLOB DCPS_SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/dcps/sturdds/*.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dcps/sturdds/*.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/dcps/sturdds/*.ipp
+file(GLOB RTPS_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/rtps/sturdds/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/rtps/sturdds/*.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/rtps/sturdds/*.ipp
 )
 set(STURDDS_SRCS
     include/sturdds/publisher.hpp
     include/sturdds/subscriber.hpp
     include/sturdds/interface.hpp
     src/interface.cpp
-    ${DCPS_SRCS}
+    ${RTPS_SRCS}
 )
 
 # --- Create the C++ Library ---
@@ -57,7 +57,7 @@ add_library(${PROJECT_NAME} ${STURDDS_SRCS})
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/dcps>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/rtps>
     $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(
@@ -67,19 +67,19 @@ target_link_libraries(
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-# # --- Build Executables ---
-# if (NOT DEFINED INSTALL_STURDDS_TESTS OR NOT INSTALL_STURDDS_TESTS)
-#     # message(STATUS "${BoldCyan}INSTALL_STURDDS_TESTS is false${Reset}")
-# else()
-#     # message(STATUS "${BoldCyan}INSTALL_STURDDS_TESTS is true${Reset}")
-#     file(GLOB testfiles "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
-#     foreach(file ${testfiles})
-#         # message(${file})
-#         get_filename_component(testname ${file} NAME_WE)
-#         add_executable(${testname} ${file})
-#         target_link_libraries( ${testname} PUBLIC ${PROJECT_NAME})
-#     endforeach(file ${testfiles})
-# endif()
+# --- Build Executables ---
+if (NOT DEFINED INSTALL_STURDDS_TESTS OR NOT INSTALL_STURDDS_TESTS)
+    # message(STATUS "${BoldCyan}INSTALL_STURDDS_TESTS is false${Reset}")
+else()
+    # message(STATUS "${BoldCyan}INSTALL_STURDDS_TESTS is true${Reset}")
+    file(GLOB testfiles "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
+    foreach(file ${testfiles})
+        # message(${file})
+        get_filename_component(testname ${file} NAME_WE)
+        add_executable(${testname} ${file})
+        target_link_libraries( ${testname} PUBLIC ${PROJECT_NAME})
+    endforeach(file ${testfiles})
+endif()
 
 # --- Make Library 'Findable' for other CMake Packages ---
 include(CMakePackageConfigHelpers)
@@ -120,15 +120,28 @@ install(
     DESTINATION lib/cmake/${PROJECT_NAME}
 )
 
-# # --- Python ---
-# if (NOT DEFINED INSTALL_PYTHON OR INSTALL_PYTHON)
-#     # add_subdirectory(pybind11)
-#     # pybind11_add_module(STURDDS_python src/STURDDS-pybind11.cpp)
-#     # target_link_libraries(STURDDS_python PRIVATE ${PROJECT_NAME})
-#     find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
-#     find_package(pybind11 CONFIG REQUIRED)
-#     python_add_library(_STURDDS_core MODULE src/STURDDS-python.cpp WITH_SOABI)
-#     target_link_libraries(_STURDDS_core PRIVATE pybind11::headers ${PROJECT_NAME})
-#     target_compile_definitions(_STURDDS_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
-#     install(TARGETS _STURDDS_core DESTINATION STURDDS)
-# endif()
+# --- Python ---
+if (NOT DEFINED INSTALL_PYTHON OR INSTALL_PYTHON)
+    # find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
+    # find_package(pybind11 CONFIG REQUIRED)
+    # python_add_library(_sturdds_core MODULE src/sturdds-python.cpp WITH_SOABI)
+    # target_link_libraries(_sturdds_core PRIVATE pybind11::headers ${PROJECT_NAME})
+    # target_compile_definitions(_sturdds_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
+    # install(TARGETS _sturdds_core DESTINATION sturdds)
+
+    # find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
+    # if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    #     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+    #     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+    # endif()
+    # execute_process(
+    #     COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+    #     OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT
+    # )
+    # find_package(nanobind CONFIG REQUIRED)
+    # nanobind_add_module(_sturdds_core NOMINSIZE src/sturdds-python.cpp)
+    # target_link_libraries(_sturdds_core PRIVATE ${PROJECT_NAME})
+    # target_compile_definitions(_sturdds_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
+    # install(TARGETS _sturdds_core DESTINATION sturdds)
+    add_subdirectory(rtps/sturdds)
+endif()

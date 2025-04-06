@@ -1,3 +1,6 @@
+#ifndef STURDDS_PUBLISHER_HPP
+#define STURDDS_PUBLISHER_HPP
+
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
@@ -6,6 +9,8 @@
 #include <fastdds/dds/topic/TypeSupport.hpp>
 #include <iostream>
 #include <stdexcept>
+
+#include "sturdds/NavMessagePubSubTypes.hpp"
 
 namespace sturdds {
 
@@ -18,13 +23,14 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
    */
   Publisher(
       const std::string& topic_name,
+      eprosima::fastdds::dds::TopicDataType* topic_type,
       eprosima::fastdds::dds::DomainParticipant* participant,
       eprosima::fastdds::dds::PublisherQos qos = eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT)
       : topic_name_{topic_name},
         participant_{participant},
         publisher_{nullptr},
         writer_{nullptr},
-        type_support_{nullptr},
+        type_{topic_type},
         topic_{nullptr},
         num_matches_{0},
         is_matched_{false} {
@@ -34,18 +40,16 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
     }
 
     // define custom type
-    type_support_ = new DataType::TypeSupport();
-    if (!type_support_->register_type(participant_)) {
-      delete type_support_;
-      throw std::runtime_error(
-          "Error registering type: " + std::string(type_support_->get_type_name()));
+    if (type_.register_type(participant_)) {
+      throw std::runtime_error("Error registering type: " + std::string(type_.get_type_name()));
     }
+    // auto ret = type_.register_type(participant_);
+    // std::cout << "register_type returned " << ret << std::endl;
 
     // create topic
     topic_ = participant_->create_topic(
-        topic_name_, type_support_->get_type_name(), eprosima::fastdds::dds::TopicQos());
+        topic_name_, type_.get_type_name(), eprosima::fastdds::dds::TopicQos());
     if (topic_ == nullptr) {
-      delete type_support_;
       throw std::runtime_error("Error creating DDS Topic: " + topic_name_);
     }
 
@@ -53,7 +57,6 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
     publisher_ = participant_->create_publisher(qos);
     if (publisher_ == nullptr) {
       participant_->delete_topic(topic_);
-      delete type_support_;
       throw std::runtime_error("Error creating DDS Publisher.");
     }
 
@@ -65,7 +68,6 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
     if (writer_ == nullptr) {
       participant_->delete_topic(topic_);
       participant_->delete_publisher(publisher_);
-      delete type_support_;
       throw std::runtime_error("Error creating DDS DataWriter for topic: " + topic_name_);
     }
   };
@@ -84,9 +86,6 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
     if (topic_ != nullptr) {
       participant_->delete_topic(topic_);
     }
-    if (type_support_ != nullptr) {
-      delete type_support_;
-    }
   };
 
   /**
@@ -94,7 +93,11 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
    * @brief Publish a message
    */
   bool Publish(const DataType& data) {
-    return writer_->write(&data) == eprosima::fastdds::dds::RETCODE_OK;
+    if (is_matched_) {
+      return writer_->write(&data) == eprosima::fastdds::dds::RETCODE_OK;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -129,7 +132,7 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
   eprosima::fastdds::dds::DomainParticipant* participant_;
   eprosima::fastdds::dds::Publisher* publisher_;
   eprosima::fastdds::dds::DataWriter* writer_;
-  eprosima::fastdds::dds::TypeSupport* type_support_;
+  eprosima::fastdds::dds::TypeSupport type_;
   eprosima::fastdds::dds::Topic* topic_;
   int num_matches_;
   bool is_matched_;
@@ -188,3 +191,5 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
 };
 
 }  // namespace sturdds
+
+#endif
