@@ -1,8 +1,13 @@
 import sys
+import os
 import signal
 
+dir = os.path.realpath(os.path.dirname(__file__))
+print(dir)
 sys.path.append("/usr/local/lib/python3/dist-packages/")
-sys.path.append("build/dcps/sturdds/")
+# sys.path.append(dir + "/../build/rtps/sturdds/")
+sys.path.append(dir + "/../../../build/src/sturdds/rtps/sturdds/")
+
 import fastdds
 import NavMessage
 

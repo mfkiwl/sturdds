@@ -143,5 +143,6 @@ if (NOT DEFINED INSTALL_PYTHON OR INSTALL_PYTHON)
     # target_link_libraries(_sturdds_core PRIVATE ${PROJECT_NAME})
     # target_compile_definitions(_sturdds_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
     # install(TARGETS _sturdds_core DESTINATION sturdds)
+    
     add_subdirectory(rtps/sturdds)
 endif()

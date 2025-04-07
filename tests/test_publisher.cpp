@@ -41,6 +41,8 @@ int main() {
     msg.Roll(180.0 * distribution(engine));
     msg.Pitch(90.0 * distribution(engine));
     msg.Yaw(180.0 * distribution(engine));
+    msg.Bias(10.0 * distribution(engine));
+    msg.Drift(5.0 * distribution(engine));
     msg.P0(1.0 * distribution(engine));
     msg.P1(1.0 * distribution(engine));
     msg.P2(1.0 * distribution(engine));
