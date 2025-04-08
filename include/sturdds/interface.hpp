@@ -52,7 +52,7 @@ class Interface {
   std::unique_ptr<Publisher<DataType>> CreatePublisher(
       const std::string topic_name,
       eprosima::fastdds::dds::TopicDataType* topic_type,
-      eprosima::fastdds::dds::PublisherQos qos = eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT) {
+      eprosima::fastdds::dds::DataWriterQos qos = eprosima::fastdds::dds::DATAWRITER_QOS_DEFAULT) {
     return std::make_unique<Publisher<DataType>>(topic_name, topic_type, participant_, qos);
   }
 
@@ -61,7 +61,7 @@ class Interface {
       const std::string topic_name,
       eprosima::fastdds::dds::TopicDataType* topic_type,
       std::function<void(const DataType&)> callback_func,
-      eprosima::fastdds::dds::SubscriberQos qos = eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT) {
+      eprosima::fastdds::dds::DataReaderQos qos = eprosima::fastdds::dds::DATAREADER_QOS_DEFAULT) {
     return std::make_unique<Subscriber<DataType>>(
         topic_name, topic_type, callback_func, participant_, qos);
   }

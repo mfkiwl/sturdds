@@ -2,6 +2,7 @@
 #define STURDDS_SUBSCRIBER_HPP
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/publisher/qos/PublisherQos.hpp>
 #include <fastdds/dds/subscriber/DataReader.hpp>
 #include <fastdds/dds/subscriber/DataReaderListener.hpp>
 #include <fastdds/dds/subscriber/Subscriber.hpp>
@@ -24,7 +25,7 @@ class Subscriber : public eprosima::fastdds::dds::DataReaderListener {
       eprosima::fastdds::dds::TopicDataType* topic_type,
       std::function<void(const DataType&)> callback_func,
       eprosima::fastdds::dds::DomainParticipant* participant,
-      eprosima::fastdds::dds::SubscriberQos qos = eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT)
+      eprosima::fastdds::dds::DataReaderQos qos = eprosima::fastdds::dds::DATAREADER_QOS_DEFAULT)
       : topic_name_{topic_name},
         participant_{participant},
         subscriber_{nullptr},
@@ -53,17 +54,15 @@ class Subscriber : public eprosima::fastdds::dds::DataReaderListener {
     }
 
     // create subscriber
-    subscriber_ = participant_->create_subscriber(qos, nullptr);
+    subscriber_ =
+        participant_->create_subscriber(eprosima::fastdds::dds::SUBSCRIBER_QOS_DEFAULT, nullptr);
     if (subscriber_ == nullptr) {
       participant_->delete_topic(topic_);
       throw std::runtime_error("Error creating DDS Subscriber.");
     }
 
     // create data reader
-    reader_ = subscriber_->create_datareader(
-        topic_,
-        eprosima::fastdds::dds::DataReaderQos(),
-        this);  // Use this class as the listener
+    reader_ = subscriber_->create_datareader(topic_, qos, this);
     if (reader_ == nullptr) {
       participant_->delete_topic(topic_);
       participant_->delete_subscriber(subscriber_);

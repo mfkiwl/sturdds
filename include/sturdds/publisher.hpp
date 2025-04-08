@@ -5,6 +5,7 @@
 #include <fastdds/dds/publisher/DataWriter.hpp>
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>
+#include <fastdds/dds/publisher/qos/PublisherQos.hpp>
 #include <fastdds/dds/topic/Topic.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 #include <iostream>
@@ -25,7 +26,7 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
       const std::string& topic_name,
       eprosima::fastdds::dds::TopicDataType* topic_type,
       eprosima::fastdds::dds::DomainParticipant* participant,
-      eprosima::fastdds::dds::PublisherQos qos = eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT)
+      eprosima::fastdds::dds::DataWriterQos qos = eprosima::fastdds::dds::DATAWRITER_QOS_DEFAULT)
       : topic_name_{topic_name},
         participant_{participant},
         publisher_{nullptr},
@@ -54,17 +55,14 @@ class Publisher : public eprosima::fastdds::dds::DataWriterListener {
     }
 
     // create publisher
-    publisher_ = participant_->create_publisher(qos);
+    publisher_ = participant_->create_publisher(eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT);
     if (publisher_ == nullptr) {
       participant_->delete_topic(topic_);
       throw std::runtime_error("Error creating DDS Publisher.");
     }
 
     // create data writer
-    writer_ = publisher_->create_datawriter(
-        topic_,
-        eprosima::fastdds::dds::DataWriterQos(),
-        this);  // Use this class as the listener
+    writer_ = publisher_->create_datawriter(topic_, qos, this);
     if (writer_ == nullptr) {
       participant_->delete_topic(topic_);
       participant_->delete_publisher(publisher_);
